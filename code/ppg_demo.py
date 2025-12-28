@@ -168,5 +168,25 @@ def run_terminal_demo():
         except ValueError:
             print(f"{Colors.FAIL}Invalid input. Please enter a number 0-10.{Colors.END}")
 
+def acquire_and_process_once(motion_level):
+    """
+    Simulates acquiring and processing one frame of data.
+    Returns a packet with perfusion_index, nir_vec_norm, raman_vec_norm.
+    """
+    # Get raw data
+    nir_raw = get_nir_raw_stream(motion_level)
+    raman_raw = get_raman_raw_features(motion_level)
+    perfusion_index = get_ppg_perfusion_index(motion_level)
+    
+    # Process
+    nir_vec_norm, _ = process_nir_vector(nir_raw)
+    raman_vec_norm = process_raman_vector(raman_raw, perfusion_index)
+    
+    return {
+        "perfusion_index": perfusion_index,
+        "nir_vec_norm": nir_vec_norm,
+        "raman_vec_norm": raman_vec_norm
+    }
+
 if __name__ == "__main__":
     run_terminal_demo()

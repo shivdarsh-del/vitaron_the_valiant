@@ -5,8 +5,10 @@ Keeps outputs in physiological range and pushes confidence ≥ 9 for demo.
 """
 
 from __future__ import annotations
+import sys
+sys.path.append('../code')
 import numpy as np
-from time_gate_raman import raman_pipeline_from_csv, RamanFeatures
+from time_gated_raman import raman_pipeline_from_csv, RamanFeatures
 from nir_pipeline import nir_pipeline_from_csv, NIRFeatures
 from pas_pipeline import pas_pipeline_from_csv, PASFeatures
 from rf_pipeline import rf_pipeline_from_csv, RFFeatures
@@ -302,10 +304,42 @@ def vitaron_fusion_and_ensemble(
 # ----------------------------------------------------------------------
 
 if __name__ == "__main__":
-    rfeats: RamanFeatures = raman_pipeline_from_csv("synthetic_glucose_raman_spectrum.csv")
-    nfeats: NIRFeatures   = nir_pipeline_from_csv("synthetic_nir_voltages.csv")
-    pas_feats: PASFeatures = pas_pipeline_from_csv("synthetic_pas_waveform.csv")
-    rf_feats: RFFeatures   = rf_pipeline_from_csv("synthetic_rf_sweep.csv")
+    # Dummy features for demo
+    rfeats = RamanFeatures(
+        peak_intensity_1125=0.915,
+        peak_intensity_1340=0.726,
+        peak_intensity_1460=0.537,
+        area_1125=10.0,
+        area_1340=8.0,
+        area_1460=6.0,
+        ratio_1125_to_1340=1.26,
+        ratio_1340_to_1460=1.35,
+        snr_estimate=20.0,
+        fluorescence_index=0.05,
+        frame_variance=0.005
+    )
+    nfeats = NIRFeatures(
+        absorbance_750=0.8,
+        absorbance_810=0.7,
+        absorbance_940=0.6,
+        absorbance_1600=0.5,
+        ratio_1600_to_940=0.83,
+        absorption_slope=-0.1,
+        water_band_index=0.2
+    )
+    pas_feats = PASFeatures(
+        early_peak_amplitude=0.1,
+        early_window_energy=5.0,
+        absorption_consistency=0.9,
+        melanin_index=0.3
+    )
+    rf_feats = RFFeatures(
+        effective_permittivity=40.0,
+        phase_delay=45.0,
+        hydration_index=0.7,
+        skin_thickness_estimate=1.5,
+        debug={"frame_variance": 0.0}
+    )
 
     prev_estimate = None
 
@@ -314,8 +348,8 @@ if __name__ == "__main__":
     packet = acquire_and_process_once(motion_level)
 
     fusion_out = vitaron_fusion_and_ensemble(
-        rfeats=rfeats,
-        nfeats=nfeats,
+        r_feats=rfeats,
+        n_feats=nfeats,
         pas_feats=pas_feats,
         rf_feats=rf_feats,
         perfusion_index=packet["perfusion_index"],
